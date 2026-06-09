@@ -1,1156 +1,367 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 
-/*
-|--------------------------------------------------------------------------
-| HERO QUEST RPG
-| Tudo em um único web.php
-|--------------------------------------------------------------------------
-*/
-
-$classes = [
-
-    'Guerreiro' => [
-        'hp' => 140,
-        'mp' => 40,
-        'attack' => 18,
-        'defence' => 12,
-        'speed' => 8,
-        'crit' => 10
-    ],
-
-    'Mago' => [
-        'hp' => 90,
-        'mp' => 120,
-        'attack' => 25,
-        'defence' => 5,
-        'speed' => 10,
-        'crit' => 15
-    ],
-
-    'Arqueiro' => [
-        'hp' => 110,
-        'mp' => 60,
-        'attack' => 20,
-        'defence' => 8,
-        'speed' => 15,
-        'crit' => 20
-    ]
-
-];
-
-$monsters = [
-
-    ['name'=>'Slime Verde','level'=>1,'hp'=>50,'attack'=>8,'defence'=>2,'gold'=>10,'xp'=>15],
-    ['name'=>'Slime Azul','level'=>2,'hp'=>65,'attack'=>10,'defence'=>3,'gold'=>15,'xp'=>20],
-    ['name'=>'Goblin','level'=>3,'hp'=>80,'attack'=>12,'defence'=>5,'gold'=>20,'xp'=>25],
-    ['name'=>'Lobo Selvagem','level'=>4,'hp'=>95,'attack'=>15,'defence'=>6,'gold'=>25,'xp'=>30],
-    ['name'=>'Esqueleto','level'=>5,'hp'=>120,'attack'=>18,'defence'=>8,'gold'=>35,'xp'=>40],
-    ['name'=>'Orc','level'=>6,'hp'=>140,'attack'=>22,'defence'=>10,'gold'=>45,'xp'=>50],
-    ['name'=>'Mago Sombrio','level'=>8,'hp'=>180,'attack'=>28,'defence'=>12,'gold'=>60,'xp'=>70],
-    ['name'=>'Troll','level'=>10,'hp'=>250,'attack'=>35,'defence'=>15,'gold'=>90,'xp'=>90]
-
-];
-
-$bosses = [
-
-    ['name'=>'Rei Goblin','level'=>5,'hp'=>300,'attack'=>25,'defence'=>10,'gold'=>100,'xp'=>120],
-    ['name'=>'Dragao Rubro','level'=>10,'hp'=>600,'attack'=>40,'defence'=>18,'gold'=>250,'xp'=>250],
-    ['name'=>'Lorde das Sombras','level'=>20,'hp'=>1200,'attack'=>70,'defence'=>30,'gold'=>500,'xp'=>500],
-    ['name'=>'Titã Ancestral','level'=>35,'hp'=>2500,'attack'=>120,'defence'=>60,'gold'=>1000,'xp'=>1200]
-
-];
-
-$shop = [
-
-    [
-        'id'=>1,
-        'name'=>'Poção Pequena',
-        'price'=>30,
-        'heal'=>50
-    ],
-
-    [
-        'id'=>2,
-        'name'=>'Poção Grande',
-        'price'=>80,
-        'heal'=>150
-    ],
-
-    [
-        'id'=>3,
-        'name'=>'Espada de Ferro',
-        'price'=>150,
-        'attack'=>8
-    ],
-
-    [
-        'id'=>4,
-        'name'=>'Armadura de Aço',
-        'price'=>180,
-        'defence'=>6
-    ],
-
-    [
-        'id'=>5,
-        'name'=>'Anel do Poder',
-        'price'=>250,
-        'attack'=>12
-    ]
-
-];
-
-$quests = [
-
-    [
-        'name'=>'Caçar Slimes',
-        'reward_gold'=>50,
-        'reward_xp'=>40
-    ],
-
-    [
-        'name'=>'Eliminar Goblins',
-        'reward_gold'=>80,
-        'reward_xp'=>60
-    ],
-
-    [
-        'name'=>'Patrulhar Floresta',
-        'reward_gold'=>100,
-        'reward_xp'=>80
-    ],
-
-    [
-        'name'=>'Defender a Vila',
-        'reward_gold'=>150,
-        'reward_xp'=>120
-    ],
-
-    [
-        'name'=>'Explorar Ruínas',
-        'reward_gold'=>220,
-        'reward_xp'=>160
-    ]
-
-];
-
-Route::get('/', function () use (
-    $classes,
-    $monsters,
-    $bosses,
-    $shop,
-    $quests
-) {
-
-    if (!Session::has('player')) {
-
+// --- 1. ROTA PRINCIPAL: GERENCIA AS TELAS ---
+Route::get('/', function () {
+    // Uso do recurso nativo session() do Laravel
+    if (!session()->has('player')) {
         return '
-        <html>
+        <!DOCTYPE html>
+        <html lang="pt-br">
         <head>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+            <meta charset="UTF-8">
+            <title>Laravel Quest - Criar Personagem</title>
+            <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         </head>
-
-        <body class="bg-slate-950 text-white flex justify-center items-center min-h-screen">
-
-            <div class="bg-slate-900 p-8 rounded-xl w-full max-w-lg">
-
-                <h1 class="text-3xl font-black text-center mb-6">
-                    HERO QUEST RPG
-                </h1>
-
-                <form method="POST" action="/create">
-
-                    '.csrf_field().'
-
-                    <input
-                    name="name"
-                    class="w-full bg-slate-800 p-3 rounded mb-4"
-                    placeholder="Nome do Herói">
-
-                    <select
-                    name="class"
-                    class="w-full bg-slate-800 p-3 rounded mb-4">
-
-                        <option>Guerreiro</option>
-                        <option>Mago</option>
-                        <option>Arqueiro</option>
-
-                    </select>
-
-                    <button
-                    class="bg-indigo-600 w-full p-3 rounded font-bold">
-
-                        Iniciar Jornada
-
+        <body class="bg-gray-950 text-gray-100 flex items-center justify-center min-h-screen">
+            <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 w-full max-w-md">
+                <h1 class="text-2xl font-bold text-center mb-6 text-blue-500">LARAVEL QUEST</h1>
+                <form method="POST" action="/criar">
+                    <input type="hidden" name="_token" value="' . csrf_token() . '">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Nome do Heroi:</label>
+                        <input type="text" name="name" required class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-1">Classe:</label>
+                        <select name="class" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-white focus:outline-none focus:border-blue-500">
+                            <option value="Guerreiro">Guerreiro</option>
+                            <option value="Mago">Mago</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition cursor-pointer">
+                        Iniciar Jogo
                     </button>
-
                 </form>
-
             </div>
-
         </body>
-        </html>
-        ';
+        </html>';
     }
 
-    $player = Session::get('player');
-
-    if (!Session::has('enemy')) {
-
-        $enemy = $monsters[array_rand($monsters)];
-
-        Session::put('enemy', $enemy);
-
-        Session::put('enemy_hp', $enemy['hp']);
-
-        Session::put('battle_logs', [
-            'Um '.$enemy['name'].' apareceu!'
-        ]);
-    }
-
-    $enemy = Session::get('enemy');
-
-    $enemyHp = Session::get('enemy_hp');
-
-    $logs = array_reverse(
-        Session::get('battle_logs', [])
-    );
-
-    $inventory = $player['inventory'] ?? [];
-
-    $gold = $player['gold'];
-
-    $xpNeed = $player['xp_needed'];
-
-    $xpPercent = min(
-        100,
-        ($player['xp'] / $xpNeed) * 100
-    );
-
-    $hpPercent = ($player['hp'] / $player['max_hp']) * 100;
-
-    $enemyPercent = ($enemyHp / $enemy['hp']) * 100;
-
-    $html = '
-    <!DOCTYPE html>
-
-    <html>
-
-    <head>
-
-        <meta charset="UTF-8">
-
-        <title>Hero Quest RPG</title>
-
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    </head>
-
-    <body class="bg-slate-950 text-white p-4">
-
-    <div class="max-w-6xl mx-auto">
-
-        <h1 class="text-4xl font-black text-center mb-6 text-indigo-400">
-            HERO QUEST RPG
-        </h1>
-
-        <div class="grid md:grid-cols-3 gap-4">
-
-            <div class="bg-slate-900 p-4 rounded-xl">
-
-                <h2 class="font-black text-xl mb-2">
-                    '.$player['name'].'
-                </h2>
-
-                <p>Classe: '.$player['class'].'</p>
-                <p>Nível: '.$player['level'].'</p>
-                <p>Ouro: '.$gold.' 🪙</p>
-
-                <div class="mt-3">
-                    HP '.$player['hp'].'/'.$player['max_hp'].'
-
-                    <div class="bg-slate-800 h-3 rounded">
-
-                        <div
-                        class="bg-green-500 h-3 rounded"
-                        style="width:'.$hpPercent.'%"></div>
-
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    XP '.$player['xp'].'/'.$xpNeed.'
-
-                    <div class="bg-slate-800 h-3 rounded">
-
-                        <div
-                        class="bg-indigo-500 h-3 rounded"
-                        style="width:'.$xpPercent.'%"></div>
-
-                    </div>
-                </div>
-
-                <hr class="my-4 border-slate-700">
-
-                <p>Ataque: '.$player['attack'].'</p>
-                <p>Defesa: '.$player['defence'].'</p>
-                <p>MP: '.$player['mp'].'</p>
-
-            </div>
-
-            <div class="bg-slate-900 p-4 rounded-xl">
-
-                <h2 class="font-black text-xl text-red-400">
-                    '.$enemy['name'].'
-                </h2>
-
-                <p>Nível '.$enemy['level'].'</p>
-
-                <div class="mt-3">
-
-                    HP '.$enemyHp.'/'.$enemy['hp'].'
-
-                    <div class="bg-slate-800 h-3 rounded">
-
-                        <div
-                        class="bg-red-500 h-3 rounded"
-                        style="width:'.$enemyPercent.'%"></div>
-
-                    </div>
-
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 mt-6">
-
-                    <form method="POST" action="/battle">
-                        '.csrf_field().'
-                        <input type="hidden" name="action" value="attack">
-                        <button class="w-full bg-red-600 p-2 rounded">
-                            Atacar
-                        </button>
-                    </form>
-
-                    <form method="POST" action="/battle">
-                        '.csrf_field().'
-                        <input type="hidden" name="action" value="skill">
-                        <button class="w-full bg-cyan-600 p-2 rounded">
-                            Skill
-                        </button>
-                    </form>
-
-                    <form method="POST" action="/battle">
-                        '.csrf_field().'
-                        <input type="hidden" name="action" value="heal">
-                        <button class="w-full bg-green-600 p-2 rounded">
-                            Curar
-                        </button>
-                    </form>
-
-                    <form method="POST" action="/quest">
-                        '.csrf_field().'
-                        <button class="w-full bg-amber-600 p-2 rounded">
-                            Missão
-                        </button>
-                    </form>
-
-                </div>
-
-            </div>
-
-            <div class="bg-slate-900 p-4 rounded-xl">
-
-                <h2 class="font-black mb-3">
-                    Log de Combate
-                </h2>
-    ';                foreach ($logs as $log) {
-
-                    $html .= '
-                    <div class="text-xs border-l-2 border-slate-700 pl-2 py-1">
-                        '.$log.'
-                    </div>';
-                }
-
-                $html .= '
-
-            </div>
-
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-4 mt-4">
-
-            <div class="bg-slate-900 p-4 rounded-xl">
-
-                <h2 class="font-black mb-3">
-                    Inventário
-                </h2>
-        ';
-
-        if(empty($inventory)){
-
-            $html .= '
-            <p class="text-slate-500 text-sm">
-                Inventário vazio.
-            </p>';
-        }
-        else{
-
-            foreach($inventory as $key => $item){
-
-                $html .= '
-
-                <div class="flex justify-between items-center bg-slate-800 rounded p-2 mb-2">
-
-                    <span>'.$item['name'].'</span>
-
-                    <form method="POST" action="/use-item">
-
-                        '.csrf_field().'
-
-                        <input
-                        type="hidden"
-                        name="slot"
-                        value="'.$key.'">
-
-                        <button class="bg-indigo-600 px-2 py-1 rounded text-xs">
-
-                            Usar
-
-                        </button>
-
-                    </form>
-
-                </div>
-                ';
-            }
-        }
-
-        $html .= '
-
-            </div>
-
-            <div class="bg-slate-900 p-4 rounded-xl">
-
-                <h2 class="font-black mb-3">
-                    Loja do Mercador
-                </h2>
-        ';
-
-        foreach($shop as $item){
-
-            $html .= '
-
-            <div class="flex justify-between items-center bg-slate-800 rounded p-2 mb-2">
-
-                <div>
-
-                    <div>'.$item['name'].'</div>
-
-                    <div class="text-xs text-yellow-400">
-
-                        '.$item['price'].' ouro
-
-                    </div>
-
-                </div>
-
-                <form method="POST" action="/buy">
-
-                    '.csrf_field().'
-
-                    <input
-                    type="hidden"
-                    name="item"
-                    value="'.$item['id'].'">
-
-                    <button
-                    class="bg-green-600 px-3 py-1 rounded text-xs">
-
-                        Comprar
-
-                    </button>
-
-                </form>
-
-            </div>
-
-            ';
-        }
-
-        $html .= '
-
-            </div>
-
-        </div>
-
-        <div class="mt-4">
-
-            <form method="POST" action="/boss">
-
-                '.csrf_field().'
-
-                <button
-                class="w-full bg-purple-700 p-3 rounded-xl font-black">
-
-                    Procurar Chefe Mundial
-
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-    </body>
-    </html>
-    ';
-
-    return response($html);
-});
-
-Route::post('/create', function () use ($classes) {
-
-    $class = Request::input('class');
-
-    $base = $classes[$class];
-
-    Session::put('player', [
-
-        'name' => Request::input('name','Herói'),
-
-        'class' => $class,
-
-        'level' => 1,
-
-        'xp' => 0,
-
-        'xp_needed' => 100,
-
-        'gold' => 50,
-
-        'hp' => $base['hp'],
-
-        'max_hp' => $base['hp'],
-
-        'mp' => $base['mp'],
-
-        'max_mp' => $base['mp'],
-
-        'attack' => $base['attack'],
-
-        'defence' => $base['defence'],
-
-        'speed' => $base['speed'],
-
-        'crit' => $base['crit'],
-
-        'inventory' => []
-
+    $player = session('player');
+
+    // Usando as Collections nativas do Laravel para estruturar os dados
+    $monstersCollection = collect([
+        ['name' => 'Slime', 'hp' => 40, 'max_hp' => 40, 'atk' => 8, 'def' => 2, 'gold' => 10, 'xp' => 40],
+        ['name' => 'Goblin', 'hp' => 60, 'max_hp' => 60, 'atk' => 12, 'def' => 5, 'gold' => 15, 'xp' => 60],
+        ['name' => 'Orc', 'hp' => 90, 'max_hp' => 90, 'atk' => 18, 'def' => 8, 'gold' => 25, 'xp' => 90],
+        ['name' => 'Golem', 'hp' => 150, 'max_hp' => 150, 'atk' => 22, 'def' => 15, 'gold' => 50, 'xp' => 100],
+        ['name' => 'Dragao', 'hp' => 250, 'max_hp' => 250, 'atk' => 35, 'def' => 20, 'gold' => 100, 'xp' => 200]
     ]);
 
-    return redirect('/');
+    $monstersJson = $monstersCollection->toJson();
+
+    return '
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>Laravel Quest</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    </head>
+    <body class="bg-gray-950 text-gray-100 p-6">
+        <div class="max-w-4xl mx-auto">
+            
+            <div class="mb-6 border-b border-gray-800 pb-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-500">LARAVEL QUEST</h1>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 p-5 rounded-lg border border-gray-800">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold text-green-400" id="p-name"></h2>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider" id="p-class"></p>
+                        </div>
+                        <span class="bg-blue-900 text-blue-200 text-xs font-bold px-2 py-1 rounded" id="p-level"></span>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Vida (HP):</span>
+                            <span id="p-hp-text"></span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded overflow-hidden">
+                            <div id="p-hp-bar" class="bg-green-500 h-2 transition-all duration-200" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Experiencia (XP):</span>
+                            <span id="p-xp-text"></span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded overflow-hidden">
+                            <div id="p-xp-bar" class="bg-blue-500 h-1.5 transition-all duration-200" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-800 grid grid-cols-2 gap-2 text-sm text-gray-400">
+                        <div>Ataque: <span class="text-white font-semibold" id="p-atk"></span></div>
+                        <div>Defesa: <span class="text-white font-semibold" id="p-def"></span></div>
+                        <div class="col-span-2 mt-2 text-yellow-400 font-bold">Ouro: <span id="p-gold"></span> moedas</div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h2 class="text-xl font-bold text-red-400" id="m-name"></h2>
+                            <span id="m-modifier" class="hidden text-xs font-bold px-2 py-0.5 rounded"></span>
+                        </div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Inimigo Ativo</p>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Vida do Inimigo:</span>
+                                <span id="m-hp-text"></span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded overflow-hidden">
+                                <div id="m-hp-bar" class="bg-red-500 h-2 transition-all duration-200" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mt-6">
+                        <button id="btn-attack" onclick="jogarTurno(\'attack\')" class="w-full bg-red-600 hover:bg-red-500 disabled:bg-gray-800 disabled:text-gray-500 py-2 rounded text-sm font-bold transition cursor-pointer disabled:cursor-not-allowed">Atacar</button>
+                        <button id="btn-heal" onclick="jogarTurno(\'heal\')" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-800 disabled:text-gray-500 py-2 rounded text-sm font-bold transition cursor-pointer disabled:cursor-not-allowed">Usar Cura</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 p-4 rounded-lg border border-gray-800 mt-6">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Relatorio de Turno</h3>
+                <div id="log-console" class="bg-gray-950 p-3 rounded font-mono text-xs space-y-1 text-gray-300 max-h-90 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <script>
+            let backupPlayer = ' . json_encode($player) . ';
+            let player = Object.assign({}, backupPlayer);
+            let monsterPool = ' . $monstersJson . ';
+            let activeMonster = {};
+            let emEspera = false; // Controla a trava de tempo dos botões
+
+            function spawnMonster() {
+                let rng = Math.random();
+                
+                if (rng < 0.05) {
+                    activeMonster = { name: "Rei Slime", hp: 350, max_hp: 350, atk: 45, def: 25, gold: 150, xp: 400, type: "boss" };
+                } else {
+                    let randomIdx = Math.floor(Math.random() * monsterPool.length);
+                    activeMonster = Object.assign({}, monsterPool[randomIdx]);
+                    
+                    if (rng >= 0.05 && rng < 0.20) {
+                        activeMonster.name = "Campeão " + activeMonster.name;
+                        activeMonster.hp = Math.floor(activeMonster.hp * 1.5);
+                        activeMonster.max_hp = activeMonster.hp;
+                        activeMonster.atk = Math.floor(activeMonster.atk * 1.3);
+                        activeMonster.gold = Math.floor(activeMonster.gold * 1.5);
+                        activeMonster.xp = Math.floor(activeMonster.xp * 1.5);
+                        activeMonster.type = "champion";
+                    } else {
+                        activeMonster.type = "normal";
+                    }
+                }
+
+                if (activeMonster.type === "boss") {
+                    adicionarLog("ALERTA: O Chefe " + activeMonster.name + " bloqueia seu caminho!");
+                } else if (activeMonster.type === "champion") {
+                    adicionarLog("Um perigoso " + activeMonster.name + " se aproxima!");
+                } else {
+                    adicionarLog("Um " + activeMonster.name + " apareceu.");
+                }
+
+                atualizarInterface();
+            }
+
+            function atualizarInterface() {
+                document.getElementById("p-name").innerText = player.name;
+                document.getElementById("p-class").innerText = "Classe: " + player.class;
+                document.getElementById("p-level").innerText = "Nivel " + player.level;
+                document.getElementById("p-hp-text").innerText = player.hp + " / " + player.max_hp;
+                document.getElementById("p-xp-text").innerText = player.xp + " / " + player.xp_needed;
+                document.getElementById("p-atk").innerText = player.atk;
+                document.getElementById("p-def").innerText = player.def;
+                document.getElementById("p-gold").innerText = player.gold;
+                
+                document.getElementById("p-hp-bar").style.width = ((player.hp / player.max_hp) * 100) + "%";
+                document.getElementById("p-xp-bar").style.width = ((player.xp / player.xp_needed) * 100) + "%";
+
+                document.getElementById("m-name").innerText = activeMonster.name;
+                document.getElementById("m-hp-text").innerText = activeMonster.hp + " / " + activeMonster.max_hp;
+                document.getElementById("m-hp-bar").style.width = ((activeMonster.hp / activeMonster.max_hp) * 100) + "%";
+
+                let badge = document.getElementById("m-modifier");
+                if (activeMonster.type === "boss") {
+                    badge.innerText = "CHEFE";
+                    badge.className = "bg-purple-900 text-purple-200 text-xs font-bold px-2 py-0.5 rounded block";
+                } else if (activeMonster.type === "champion") {
+                    badge.innerText = "CAMPEÃO";
+                    badge.className = "bg-orange-900 text-orange-200 text-xs font-bold px-2 py-0.5 rounded block";
+                } else {
+                    badge.className = "hidden";
+                }
+
+                // Desabilita os botões visualmente se "emEspera" for verdadeiro
+                document.getElementById("btn-attack").disabled = emEspera;
+                document.getElementById("btn-heal").disabled = emEspera;
+            }
+
+            function adicionarLog(texto) {
+                let consoleDiv = document.getElementById("log-console");
+                consoleDiv.innerHTML += "<p class=\'border-l-2 border-gray-700 pl-2\'>" + texto + "</p>";
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            }
+
+            function limparConsole() {
+                document.getElementById("log-console").innerHTML = "";
+            }
+
+            function resetarPersonagemPorMorte() {
+                limparConsole();
+                adicionarLog("RELIQUIA DE RESSUREICAO ATIVADA!");
+                adicionarLog("Voce voltou ao Nivel 1. Tente novamente!");
+                
+                player = Object.assign({}, backupPlayer);
+                emEspera = false;
+                spawnMonster();
+            }
+
+            function jogarTurno(acao) {
+                if (emEspera || player.hp <= 0 || activeMonster.hp <= 0) return;
+
+                // Ativa a trava de clique imediatamente
+                emEspera = true;
+                atualizarInterface();
+
+                let acaoExecutada = false;
+
+                // --- FLUXO DO JOGADOR ---
+                if (acao === "attack") {
+                    if (Math.random() < 0.10) {
+                        adicionarLog("O " + activeMonster.name + " esquivou do seu ataque!");
+                    } else {
+                        let variacao = Math.floor(Math.random() * 5) + 1;
+                        let danoBase = (player.atk + variacao) - activeMonster.def;
+                        let danoFinal = Math.max(1, danoBase);
+                        
+                        if (Math.random() < 0.15) {
+                            danoFinal = danoFinal * 2;
+                            adicionarLog("ACERTO CRITICO! Voce causou " + danoFinal + " de dano no " + activeMonster.name);
+                        } else {
+                            adicionarLog("Voce causou " + danoFinal + " de dano no " + activeMonster.name);
+                        }
+
+                        activeMonster.hp -= danoFinal;
+                    }
+                    acaoExecutada = true;
+
+                    if (activeMonster.hp <= 0) {
+                        activeMonster.hp = 0;
+                        player.gold += activeMonster.gold;
+                        player.xp += activeMonster.xp;
+                        
+                        let curaVitoria = Math.floor(player.max_hp * 0.15);
+                        player.hp = Math.min(player.max_hp, player.hp + curaVitoria);
+                        
+                        adicionarLog("Voce derrotou o " + activeMonster.name + ". Recebeu " + activeMonster.gold + " moedas, " + activeMonster.xp + " XP e recuperou " + curaVitoria + " de HP.");
+                        
+                        if (player.xp >= player.xp_needed) {
+                            player.xp -= player.xp_needed;
+                            player.level += 1;
+                            player.xp_needed = Math.floor(player.xp_needed * 1.5);
+                            
+                            player.max_hp += 20;
+                            player.hp = player.max_hp;
+                            player.atk += 4;
+                            player.def += 3;
+                            player.gold += 30; 
+                            
+                            adicionarLog("LEVEL UP! Voce alcancou o Nivel " + player.level + " e recebeu 30 moedas de bonus!");
+                        }
+
+                        // Próximo monstro surge após 1.5 segundos, liberando o botão
+                        setTimeout(() => {
+                            emEspera = false;
+                            spawnMonster();
+                        }, 1500);
+                        return;
+                    }
+                } else if (acao === "heal") {
+                    if (player.gold >= 10) {
+                        player.gold -= 10;
+                        let valorCura = Math.floor(player.max_hp * 0.30);
+                        player.hp = Math.min(player.max_hp, player.hp + valorCura);
+                        adicionarLog("Voce usou poção por 10 moedas e curou " + valorCura + " de HP.");
+                        acaoExecutada = true;
+                    } else {
+                        adicionarLog("Moedas insuficientes. Custo da cura: 10 moedas.");
+                    }
+                }
+
+                // --- FLUXO DE CONTRA-ATAQUE DO MONSTRO ---
+                if (acaoExecutada && activeMonster.hp > 0) {
+                    let chanceEsquivaPlayer = (player.class === "Mago") ? 0.15 : 0.08;
+                    
+                    if (Math.random() < chanceEsquivaPlayer) {
+                        adicionarLog("Voce conseguiu esquivar do ataque do " + activeMonster.name + "!");
+                    } else {
+                        let variacaoM = Math.floor(Math.random() * 3) + 1;
+                        let danoInimigo = Math.max(1, (activeMonster.atk + variacaoM) - player.def);
+                        player.hp -= danoInimigo;
+                        adicionarLog("O " + activeMonster.name + " revidou causando " + danoInimigo + " de dano.");
+
+                        if (player.hp <= 0) {
+                            player.hp = 0;
+                            atualizarInterface();
+                            setTimeout(resetarPersonagemPorMorte, 1500);
+                            return;
+                        }
+                    }
+                }
+
+                // Libera a trava de tempo dos botões após 1.5 segundos (1500ms)
+                setTimeout(() => {
+                    emEspera = false;
+                    atualizarInterface();
+                }, 500);
+            }
+
+            window.onload = spawnMonster;
+        </script>
+    </body>
+    </html>';
 });
 
-Route::post('/battle', function () {
-
-    $player = Session::get('player');
-
-    $enemy = Session::get('enemy');
-
-    $enemyHp = Session::get('enemy_hp');
-
-    $logs = Session::get('battle_logs', []);
-
-    $action = Request::input('action');
-
-    if($action == 'attack'){
-
-        $damage = max(
-            1,
-            ($player['attack'] + rand(1,8))
-            - $enemy['defence']
-        );
-
-        if(rand(1,100) <= $player['crit']){
-
-            $damage *= 2;
-
-            $logs[] = 'CRÍTICO!';
-        }
-
-        $enemyHp -= $damage;
-
-        $logs[] = 'Você causou '.$damage.' de dano.';
-    }
-
-    elseif($action == 'skill'){
-
-        if($player['mp'] >= 10){
-
-            $player['mp'] -= 10;
-
-            $damage =
-                ($player['attack'] * 2)
-                + rand(5,15);
-
-            $enemyHp -= $damage;
-
-            $logs[] =
-            'Habilidade especial causou '.$damage.' de dano.';
-        }
-        else{
-
-            $logs[] =
-            'Mana insuficiente.';
-        }
-    }
-
-    elseif($action == 'heal'){
-
-        if($player['mp'] >= 8){
-
-            $player['mp'] -= 8;
-
-            $heal =
-                intval($player['max_hp'] * 0.25);
-
-            $player['hp'] = min(
-                $player['max_hp'],
-                $player['hp'] + $heal
-            );
-
-            $logs[] =
-            'Você recuperou '.$heal.' HP.';
-        }
-    }    if($enemyHp > 0){
-
-        $enemyDamage = max(
-            1,
-            ($enemy['attack'] + rand(1,5))
-            - $player['defence']
-        );
-
-        $player['hp'] -= $enemyDamage;
-
-        $logs[] =
-        $enemy['name'].
-        ' causou '.$enemyDamage.
-        ' de dano.';
-    }
-
-    if($enemyHp <= 0){
-
-        $enemyHp = 0;
-
-        $logs[] =
-        'Você derrotou '.$enemy['name'].'!';
-
-        $player['gold'] += $enemy['gold'];
-
-        $player['xp'] += $enemy['xp'];
-
-        $logs[] =
-        '+'.$enemy['gold'].' ouro';
-
-        $logs[] =
-        '+'.$enemy['xp'].' XP';
-
-        if(rand(1,100) <= 35){
-
-            $loot = [
-                'name' => 'Poção Pequena',
-                'heal' => 50
-            ];
-
-            $player['inventory'][] = $loot;
-
-            $logs[] =
-            'Loot encontrado: Poção Pequena';
-        }
-
-        while(
-            $player['xp']
-            >=
-            $player['xp_needed']
-        ){
-
-            $player['xp']
-            -=
-            $player['xp_needed'];
-
-            $player['level']++;
-
-            $player['xp_needed']
-            =
-            intval(
-                $player['xp_needed']
-                * 1.4
-            );
-
-            $player['max_hp'] += 25;
-            $player['max_mp'] += 10;
-            $player['attack'] += 4;
-            $player['defence'] += 3;
-
-            $player['hp']
-            =
-            $player['max_hp'];
-
-            $player['mp']
-            =
-            $player['max_mp'];
-
-            $logs[] =
-            'LEVEL UP! Agora nível '
-            .$player['level'];
-        }
-
-        Session::forget('enemy');
-        Session::forget('enemy_hp');
-    }
-
-    if($player['hp'] <= 0){
-
-        $player['hp'] = 1;
-
-        $goldLost =
-            min(
-                $player['gold'],
-                intval($player['gold'] * 0.10)
-            );
-
-        $player['gold']
-        -=
-        $goldLost;
-
-        $logs[] =
-        'Você foi derrotado.';
-
-        $logs[] =
-        'Perdeu '.$goldLost.' ouro.';
-
-        Session::forget('enemy');
-        Session::forget('enemy_hp');
-    }
-
-    Session::put('player',$player);
-    Session::put('enemy_hp',$enemyHp);
-    Session::put('battle_logs',$logs);
-
-    return redirect('/');
-});
-
-Route::post('/quest', function () use ($quests) {
-
-    $player = Session::get('player');
-
-    $quest =
-        $quests[array_rand($quests)];
-
-    $gold =
-        rand(
-            $quest['reward_gold'],
-            $quest['reward_gold'] + 50
-        );
-
-    $xp =
-        rand(
-            $quest['reward_xp'],
-            $quest['reward_xp'] + 30
-        );
-
-    $player['gold'] += $gold;
-    $player['xp'] += $xp;
-
-    $logs =
-        Session::get('battle_logs',[]);
-
-    $logs[] =
-    'Missão concluída: '
-    .$quest['name'];
-
-    $logs[] =
-    '+'.$gold.' ouro';
-
-    $logs[] =
-    '+'.$xp.' XP';
-
-    while(
-        $player['xp']
-        >=
-        $player['xp_needed']
-    ){
-
-        $player['xp']
-        -=
-        $player['xp_needed'];
-
-        $player['level']++;
-
-        $player['xp_needed']
-        =
-        intval(
-            $player['xp_needed']
-            * 1.4
-        );
-
-        $player['max_hp'] += 25;
-        $player['max_mp'] += 10;
-        $player['attack'] += 4;
-        $player['defence'] += 3;
-
-        $logs[] =
-        'LEVEL UP! Nível '
-        .$player['level'];
-    }
-
-    Session::put('player',$player);
-    Session::put('battle_logs',$logs);
-
-    return redirect('/');
-});
-
-Route::post('/buy', function () use ($shop) {
-
-    $id =
-        intval(
-            Request::input('item')
-        );
-
-    $player =
-        Session::get('player');
-
-    $logs =
-        Session::get('battle_logs',[]);
-
-    foreach($shop as $item){
-
-        if($item['id'] != $id){
-            continue;
-        }
-
-        if(
-            $player['gold']
-            <
-            $item['price']
-        ){
-
-            $logs[] =
-            'Ouro insuficiente.';
-
-            Session::put(
-                'battle_logs',
-                $logs
-            );
-
-            return redirect('/');
-        }
-
-        $player['gold']
-        -=
-        $item['price'];
-
-        if(isset($item['heal'])){
-
-            $player['inventory'][] = [
-
-                'name' => $item['name'],
-
-                'heal' => $item['heal']
-
-            ];
-        }
-
-        if(isset($item['attack'])){
-
-            $player['attack']
-            +=
-            $item['attack'];
-
-            $logs[] =
-            'Ataque aumentado!';
-        }
-
-        if(isset($item['defence'])){
-
-            $player['defence']
-            +=
-            $item['defence'];
-
-            $logs[] =
-            'Defesa aumentada!';
-        }
-
-        $logs[] =
-        'Comprou '.$item['name'];
-
-        break;
-    }
-
-    Session::put('player',$player);
-    Session::put('battle_logs',$logs);
+// --- 2. ROTA DE PROCESSAMENTO: CRIA O MODELO DO HEROI ---
+Route::post('/criar', function (Request $request) {
+    $name = $request->input('name', 'Heroi');
+    $class = $request->input('class');
+
+    // Usando as Collections nativas do Laravel para organizar os atributos
+    $attributes = collect([
+        'Guerreiro' => ['hp' => 120, 'max_hp' => 120, 'atk' => 16, 'def' => 12],
+        'Mago'      => ['hp' => 85,  'max_hp' => 85,  'atk' => 26, 'def' => 5],
+    ]);
+
+    $playerData = $attributes->get($class);
+    $playerData['name'] = $name;
+    $playerData['class'] = $class;
+    $playerData['gold'] = 50; 
+    $playerData['level'] = 1;
+    $playerData['xp'] = 0;
+    $playerData['xp_needed'] = 100;
+
+    // Uso do helper nativo session() global do Laravel
+    session(['player' => $playerData]);
 
     return redirect('/');
 });
 
-Route::post('/use-item', function(){
-
-    $slot =
-        intval(
-            Request::input('slot')
-        );
-
-    $player =
-        Session::get('player');
-
-    $logs =
-        Session::get('battle_logs',[]);
-
-    if(
-        !isset(
-            $player['inventory'][$slot]
-        )
-    ){
-        return redirect('/');
-    }
-
-    $item =
-        $player['inventory'][$slot];
-
-    if(isset($item['heal'])){
-
-        $player['hp'] =
-        min(
-            $player['max_hp'],
-            $player['hp']
-            +
-            $item['heal']
-        );
-
-        $logs[] =
-        'Usou '.$item['name'];
-
-        unset(
-            $player['inventory'][$slot]
-        );
-
-        $player['inventory']
-        =
-        array_values(
-            $player['inventory']
-        );
-    }
-
-    Session::put('player',$player);
-    Session::put('battle_logs',$logs);
-
-    return redirect('/');
-});Route::post('/boss', function () use ($bosses) {
-
-    $boss =
-        $bosses[array_rand($bosses)];
-
-    Session::put('enemy', $boss);
-
-    Session::put(
-        'enemy_hp',
-        $boss['hp']
-    );
-
-    $logs =
-        Session::get(
-            'battle_logs',
-            []
-        );
-
-    $logs[] =
-    '⚔️ CHEFE ENCONTRADO: '
-    .$boss['name'];
-
-    $logs[] =
-    'Prepare-se para uma batalha épica!';
-
-    Session::put(
-        'battle_logs',
-        $logs
-    );
-
+// --- 3. ROTA DE RESET MANUAL ---
+Route::post('/reiniciar', function () {
+    session()->forget('player');
     return redirect('/');
 });
-
-Route::post('/new-game', function () {
-
-    Session::flush();
-
-    return redirect('/');
-});
-
-Route::get('/stats', function () {
-
-    $player =
-        Session::get('player');
-
-    if(!$player){
-
-        return response()->json([
-            'error' => 'Nenhum jogador'
-        ]);
-    }
-
-    return response()->json($player);
-});
-
-/*
-|--------------------------------------------------------------------------
-| BÔNUS: recompensa especial para chefes
-|--------------------------------------------------------------------------
-|
-| Adicione este bloco DENTRO da rota /battle,
-| logo após:
-|
-| if($enemyHp <= 0){
-|
-| e antes do Session::forget('enemy');
-|
-*/
-
-if(
-    isset($enemy['hp'])
-    &&
-    $enemy['hp'] >= 300
-){
-
-    $bonusGold =
-        intval(
-            $enemy['gold'] * 2
-        );
-
-    $bonusXp =
-        intval(
-            $enemy['xp'] * 2
-        );
-
-    $player['gold']
-    +=
-    $bonusGold;
-
-    $player['xp']
-    +=
-    $bonusXp;
-
-    $logs[] =
-    '🏆 Recompensa de Chefe!';
-
-    $logs[] =
-    '+'.$bonusGold.' ouro bônus';
-
-    $logs[] =
-    '+'.$bonusXp.' XP bônus';
-
-    if(rand(1,100) <= 50){
-
-        $epicItems = [
-
-            [
-                'name' =>
-                'Poção Suprema',
-                'heal' => 300
-            ],
-
-            [
-                'name' =>
-                'Poção Suprema',
-                'heal' => 300
-            ],
-
-            [
-                'name' =>
-                'Poção Suprema',
-                'heal' => 300
-            ]
-
-        ];
-
-        $drop =
-            $epicItems[
-                array_rand(
-                    $epicItems
-                )
-            ];
-
-        $player['inventory'][]
-        =
-        $drop;
-
-        $logs[] =
-        '✨ Item épico encontrado!';
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| OPCIONAL - TÍTULOS POR NÍVEL
-|--------------------------------------------------------------------------
-|
-| Coloque dentro do GET /
-| depois de carregar o player
-|
-*/
-
-$title = 'Aventureiro';
-
-if($player['level'] >= 5){
-    $title = 'Caçador de Monstros';
-}
-
-if($player['level'] >= 10){
-    $title = 'Cavaleiro Lendário';
-}
-
-if($player['level'] >= 20){
-    $title = 'Herói do Reino';
-}
-
-if($player['level'] >= 35){
-    $title = 'Mestre das Lendas';
-}
-
-if($player['level'] >= 50){
-    $title = 'Deus da Guerra';
-}
-
-/*
-|--------------------------------------------------------------------------
-| Exibição opcional
-|--------------------------------------------------------------------------
-|
-| Mostrar abaixo do nome:
-|
-| <p>'.$title.'</p>
-|
-*/
-
-/*
-|--------------------------------------------------------------------------
-| Botão Novo Jogo (opcional)
-|--------------------------------------------------------------------------
-|
-| Adicione no HTML:
-|
-| <form method="POST" action="/new-game">
-|     '.csrf_field().'
-|     <button class="bg-red-700 p-2 rounded">
-|         Reiniciar
-|     </button>
-| </form>
-|
-*/
-
-/*
-|--------------------------------------------------------------------------
-| FIM
-|--------------------------------------------------------------------------
-*/
