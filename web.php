@@ -27,8 +27,8 @@ Route::get('/', function () {
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-1">Classe:</label>
                         <select name="class" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-white focus:outline-none focus:border-blue-500">
-                            <option value="Guerreiro">Guerreiro</option>
-                            <option value="Mago">Mago</option>
+                            <option value="Guerreiro">Guerreiro (Mais defesa)</option>
+                            <option value="Mago">Mago (Mais dano)</option>
                         </select>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition cursor-pointer">
