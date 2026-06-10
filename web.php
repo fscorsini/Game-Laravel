@@ -29,6 +29,11 @@ Route::get('/', function () {
                         <select name="class" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-white focus:outline-none focus:border-blue-500">
                             <option value="Guerreiro">Guerreiro (Mais defesa)</option>
                             <option value="Mago">Mago (Mais dano)</option>
+                            <option value="Arqueiro">Arqueiro (Equilibrado)</option>
+                            <option value="Paladino">Paladino (O tanque)</option>
+                            <option value="Assassino">Assassino (Maior Dano)</option>
+                            <option value="Barbaro">Bárbaro (Grande HP)</option>
+                            <option value="Clerigo">Clérigo (Suporte)</option>
                         </select>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition cursor-pointer">
@@ -48,7 +53,8 @@ Route::get('/', function () {
         ['name' => 'Goblin', 'hp' => 60, 'max_hp' => 60, 'atk' => 12, 'def' => 5, 'gold' => 15, 'xp' => 60],
         ['name' => 'Orc', 'hp' => 90, 'max_hp' => 90, 'atk' => 18, 'def' => 8, 'gold' => 25, 'xp' => 90],
         ['name' => 'Golem', 'hp' => 150, 'max_hp' => 150, 'atk' => 22, 'def' => 15, 'gold' => 50, 'xp' => 100],
-        ['name' => 'Dragao', 'hp' => 250, 'max_hp' => 250, 'atk' => 35, 'def' => 20, 'gold' => 100, 'xp' => 200]
+        ['name' => 'Dragao', 'hp' => 250, 'max_hp' => 250, 'atk' => 35, 'def' => 20, 'gold' => 100, 'xp' => 200],
+        ['name' => 'Dragao de olhos azuis', 'hp' => 350, 'max_hp' => 350, 'atk' => 45, 'def' => 25, 'gold' => 200, 'xp' => 400]
     ]);
 
     $monstersJson = $monstersCollection->toJson();
@@ -344,6 +350,11 @@ Route::post('/criar', function (Request $request) {
     $attributes = collect([
         'Guerreiro' => ['hp' => 120, 'max_hp' => 120, 'atk' => 16, 'def' => 12],
         'Mago'      => ['hp' => 85,  'max_hp' => 85,  'atk' => 26, 'def' => 5],
+        'Arqueiro'   => ['hp' => 95,  'max_hp' => 95,  'atk' => 22, 'def' => 8],
+        'Paladino'   => ['hp' => 140, 'max_hp' => 140, 'atk' => 14, 'def' => 15],
+        'Assassino'  => ['hp' => 80,  'max_hp' => 80,  'atk' => 30, 'def' => 4],
+        'Bárbaro'    => ['hp' => 160, 'max_hp' => 160, 'atk' => 20, 'def' => 6],
+        'Clérigo'    => ['hp' => 110, 'max_hp' => 110, 'atk' => 12, 'def' => 10],
     ]);
 
     $playerData = $attributes->get($class);
